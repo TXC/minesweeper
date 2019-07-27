@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Minesweeper</title>
+</head>
+<body>
+<main>
+    <h1>Minesweeper</h1>
+
+    <div class="board"></div>
+
+    <div class="instructions">
+        Left Click: Open Cell<br>
+        Right Click: Place Flag<br>
+        Ctrl + Left Click: Open Adjacent, Non-Flagged Cells
+    </div>
+
+    <div class="controls">
+        <div class="user-display">Time<br/><span id="time">0</span>s</div>
+        <button class="button" id="new-game-button">New Game</button>&nbsp;
+        <div class="user-display">Remaining<br/><span id="mines-remaining">0</span></div>
+    </div>
+</main>
+<script type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function(event) {
+        Minesweeper();
+    });
+</script>
+</body>
+</html>
