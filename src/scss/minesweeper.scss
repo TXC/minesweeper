@@ -1,0 +1,93 @@
+@import "variables";
+body {
+  background: $background-color;
+}
+
+main {
+  max-width: 610px;
+  margin: auto;
+
+  h1 {
+    text-align: center;
+    color: $title-color;
+  }
+
+  .user-display {
+    text-align: center;
+    color: $text-color;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    display: inline-block;
+    width: 15%;
+    margin-right: 5px;
+  }
+
+  .instructions {
+    text-align: left;
+    padding-left: 5px;
+    color: $text-color;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    margin-bottom: 1em;
+    font-weight: bold;
+  }
+
+  .controls {
+    text-align: center;
+  }
+
+  #messageBox {
+    text-align: center;
+    color: $text-color;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-bottom: 1em;
+    padding: 5px;
+  }
+
+  .board {
+    width: 520px;
+    height: 520px;
+    margin: 1em;
+    border: 25px solid #333;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .board div {
+    width: 50px;
+    height: 50px;
+    background-image: radial-gradient(#fff, #e6e6e6);
+    border: 1px solid black;
+    font-size: 50px;
+    text-align: center;
+    line-height: 54px;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 15px 25px;
+    font-size: 24px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: $button-text-color;
+    background-color: $button-background-color;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #999;
+  }
+
+  .button:hover {
+    background-color: $button-hover-background-color
+  }
+
+  .button:active {
+    background-color: $button-active-background-color;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }
+}
