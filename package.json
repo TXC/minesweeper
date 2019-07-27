@@ -2,6 +2,14 @@
   "name": "minesweeper",
   "version": "0.0.1",
   "main": "public/index.js",
+  "repository": "github:TXC/minesweeper",
+  "homepage": "https://github.com/TXC/minesweeper#readme",
+  "bugs": "https://github.com/TXC/minesweeper/issues",
+  "author": {
+    "name": "Jonas Marklén",
+    "email": "txc@txc.se",
+    "url": "https://github.com/TXC/"
+  },
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
