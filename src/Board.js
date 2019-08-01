@@ -63,9 +63,9 @@ export class Board {
                 if( !cell.mined ) {
                     neighbors = cell.getNeighbors( );
                     neighborMineCount = 0;
-                    for( i = 0; i < neighbors.length; i++ ) {
-                        neighborMineCount += Game.board[neighbors[i]].isMined();
-                    }
+                    neighbors.forEach( (neighbor) => {
+                        neighborMineCount += Game.board[neighbor].isMined();
+                    });
                     cell.neighborMineCount = neighborMineCount;
                 }
             }
@@ -76,12 +76,15 @@ export class Board {
         let row  = 0,
             column = 0,
             cells = document.getElementsByClassName('cell'),
-            i,
+            i/*,
             cssList = {
                 color : 'black',
                 backgroundImage : 'radial-gradient(#fff,#e6e6e6)'
-            };
+            }*/;
         for (i=0; i < cells.length; i++) {
+            cells.item(i).className = 'cell';
+            cells.item(i).removeAttribute("style");
+            /*
             Object.assign(cells.item(i).style, cssList);
 
             column++;
@@ -89,6 +92,7 @@ export class Board {
                 column = 0;
                 row++;
             }
+            */
 
             cells.item(i).removeEventListener('click', Events.cellClickEvent);
             cells.item(i).addEventListener('click', Events.cellClickEvent);

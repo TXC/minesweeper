@@ -45,15 +45,15 @@ export class Cell {
                 i--;
             }
         }
-        return neighbors
+        return neighbors;
     }
 
     getNumberColor( ) {
         switch(this.neighborMineCount) {
-            case 1: return 'blue'; break;
-            case 2: return 'green'; break;
-            case 3: return 'red'; break;
-            case 4: return 'orange'; break;
+            case 1: return 'blue';
+            case 2: return 'green';
+            case 3: return 'red';
+            case 4: return 'orange';
             default: return 'black';
         }
     }

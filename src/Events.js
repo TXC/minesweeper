@@ -14,33 +14,31 @@ export class Events {
             let cell = Game.board[id],
                 $cell = document.getElementById( id ),
                 neighbors,
-                neighbor,
-                color,
-                i;
+                color;
             if( !cell.opened && !cell.flagged ) {
                 if( cell.mined ) {
                     Game.loss();
                     $cell.innerHTML = Game.MINE;
-                    $cell.style.color = 'red';
+                    $cell.classList.add('red');
                 } else {
                     cell.opened = true;
                     if( cell.neighborMineCount > 0 ) {
-                        color = cell.getNumberColor();
                         $cell.innerText = cell.neighborMineCount;
-                        $cell.style.color = color;
+                        $cell.classList.add(cell.getNumberColor());
                     } else {
                         $cell.innerHTML = '';
-                        $cell.style.backgroundImage = 'radial-gradient(#e6e6e6,#c9c7c7)';
+                        $cell.classList.add('empty');
+
                         neighbors = cell.getNeighbors();
-                        for( i = 0; i < neighbors.length; i++ ) {
-                            neighbor = neighbors[i];
-                            if( typeof Game.board[neighbor] !== 'undefined'
+                        neighbors.forEach( (neighbor) => {
+                            if(
+                                typeof Game.board[neighbor] !== 'undefined'
                                 && !Game.board[neighbor].flagged
                                 && !Game.board[neighbor].opened
                             ) {
                                 this.handleClick( neighbor );
                             }
-                        }
+                        });
                     }
                 }
             }
@@ -56,31 +54,29 @@ export class Events {
                 neighbor,
                 lost = false,
                 i;
-            for( i = 0; i < neighbors.length; i++ ) {
-                neighbor = Game.board[neighbors[i]];
+            neighbors.forEach((neighbor) => {
                 if( neighbor.flagged ) {
                     flaggedCells.push( neighbor );
                 }
                 flagCount += neighbor.flagged;
-            }
+            });
 
             if( flagCount === cell.neighborMineCount ) {
-                for( i = 0; i < flaggedCells.length; i++ ) {
-                    if( flaggedCells[i].flagged && !flaggedCells[i].mined ) {
+                flaggedCells.some((flaggedCell) => {
+                    if( flaggedCell.flagged && !flaggedCell.mined ) {
                         Game.loss();
                         lost = true;
-                        break;
+                        return true;
                     }
-                }
+                });
 
                 if( !lost ) {
-                    for( i = 0; i < neighbors.length; i++ ) {
-                        neighbor = Game.board[neighbors[i]];
+                    neighbors.forEach((neighbor) => {
                         if( !neighbor.flagged && !neighbor.opened ) {
                             Events.ctrlIsPressed = false;
                             Events.handleClick( neighbor.id );
                         }
-                    }
+                    });
                 }
             }
         }
@@ -94,17 +90,20 @@ export class Events {
                 if( !cell.flagged && Game.minesRemaining > 0 ) {
                     cell.flagged = true;
                     $cell.innerHTML = Game.FLAG;
-                    $cell.style.color = 'red';
+                    $cell.className = 'cell';
+                    $cell.classList.add('red');
                     Game.minesRemaining--;
                 } else if( cell.flagged && cell.neighborMineCount > 0 ) {
                     cell.flagged = false;
                     $cell.innerHTML = cell.neighborMineCount;
-                    $cell.style.color = cell.getNumberColor();
+                    $cell.className = 'cell';
+                    $cell.classList.add(cell.getNumberColor());
                     Game.minesRemaining++;
                 } else if( cell.flagged ) {
                     cell.flagged = false;
                     $cell.innerHTML = '';
-                    $cell.style.color = 'black';
+                    $cell.className = 'cell';
+                    $cell.classList.add('black');
                     Game.minesRemaining++;
                 }
 
@@ -116,14 +115,13 @@ export class Events {
     static cellClickEvent(e) {
         Events.handleClick( e.currentTarget.getAttribute('id') );
         let isVictory = true,
-            cells = Object.keys(Game.board),
-            i;
-        for( i = 0; i < cells.length; i++ ) {
-            if( !Game.board[cells[i]].mined && !Game.board[cells[i]].opened ) {
+            cells = Object.keys(Game.board);
+        cells.some((cell) => {
+            if( !Game.board[cell].mined && !Game.board[cell].opened ) {
                 isVictory = false;
-                break;
+                return true;
             }
-        }
+        });
 
         if( isVictory ) {
             Game.win();
@@ -138,16 +136,33 @@ export class Events {
             });
     }
 
+    static question (event) {
+        let el,
+            style,
+            div = document.getElementById('instructions');
+
+        style = div.style;
+        el = window.getComputedStyle(div);
+        if(el.display === 'block') {
+            style.display = '';
+        } else {
+            style.display = 'block';
+        }
+    }
+
     static keyDown(event) {
-        event.preventDefault();
+        if(process.env.NODE_ENV === 'production') {
+            event.preventDefault();
+        }
         if(event.key === 'Control' || event.key === 'Meta') {
-            console.log('Bla');
             Events.ctrlIsPressed = true;
         }
     }
 
     static keyUp(event) {
-        event.preventDefault();
+        if(process.env.NODE_ENV === 'production') {
+            event.preventDefault();
+        }
         if(event.key === 'Control' || event.key === 'Meta') {
             Events.ctrlIsPressed = false;
         }

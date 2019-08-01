@@ -18,22 +18,22 @@ export class Game {
     static loss() {
         this.gameOver = true;
         let messageBox = document.getElementById('messageBox'),
-            i, cell;
+            domCell;
         messageBox.innerText = 'Game Over!';
         Object.assign(messageBox.style, { color : 'white', backgroundColor: 'red' });
 
         let cells = Object.keys(Game.board);
-        for( i = 0; i < cells.length; i++ ) {
-            if( Game.board[cells[i]].mined && !Game.board[cells[i]].flagged ) {
-                cell = document.getElementById(Game.board[cells[i]].id);
-                cell.innerHTML = Game.MINE;
-                cell.style.color = 'black';
-            } else if ( !Game.board[cells[i]].mined && Game.board[cells[i]].flagged ) {
-                cell = document.getElementById(Game.board[cells[i]].id);
-                cell.innerHTML = Game.FLAGOFF;
-                cell.style.color = 'black';
+        cells.forEach((cell) => {
+            if( Game.board[cell].mined && !Game.board[cell].flagged ) {
+                domCell = document.getElementById(Game.board[cell].id);
+                domCell.innerHTML = Game.MINE;
+                domCell.classList.add('black');
+            } else if ( !Game.board[cell].mined && Game.board[cell].flagged ) {
+                domCell = document.getElementById(Game.board[cell].id);
+                domCell.innerHTML = Game.FLAGOFF;
+                domCell.classList.add('black');
             }
-        }
+        });
         clearInterval(Game.timeout);
     }
 
