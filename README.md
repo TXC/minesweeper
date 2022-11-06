@@ -8,3 +8,14 @@
 * Right clicking on a cell marks it with a flag. The flag indicates that the player knows there is a mine lurking there.
 * Holding down the ctrl (Other)/meta (MacOS) button while clicking on an opened cell has some slightly complicated rules. If the number of flags surrounding the cell match its neighbor mine count, and each flagged cell actually contains a mine, then all closed, unflagged neighboring cells are opened automatically. However, if even one of these flags was placed on the wrong cell, the game ends in failure.
 * The player wins the game if he/she opens all cells without mines.
+
+## Install
+ ```
+ git clone https://github.com/TXC/minesweeper.git
+ npm install
+ npm run build
+ ```
+ And all files should be in `public`
+ 
+ ## Links
+ 

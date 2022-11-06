@@ -1,0 +1,134 @@
+.question {
+  height: 30px;
+  width: 30px;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+}
+
+.userDisplay {
+  text-align: center;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  display: inline-block;
+  width: 15%;
+  margin: 0 5px;
+  padding: 5px;
+}
+
+.instructions {
+  text-align: left;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  margin: 0 5px 1em;
+  padding: 5px;
+  font-weight: bold;
+  display: none;
+}
+
+.controls {
+  text-align: center;
+}
+
+.button {
+  display: inline-block;
+  padding: 15px 25px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: var(--button-text-color);
+  background-color: var(--button-background-color);
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px var(--cell-color-dark-gray);
+}
+.button:hover {
+  background-color: var(--button-hover-background-color);
+}
+.button:active {
+  background-color: var(--button-active-background-color);
+  box-shadow: 0 5px var(--cell-color-dark-gray);
+  transform: translateY(4px);
+}
+
+.messageBox {
+  text-align: center;
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-weight: bold;
+  margin: 0 5px 1em;
+  padding: 5px;
+}
+
+.board {
+  width: calc((var(--cell-width) + (var(--cell-border) * 2)) * 10);
+  height: calc((var(--cell-height) + (var(--cell-border) * 2)) * 10);
+  margin: 1em;
+  border: 20px solid #333;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.board > div {
+  width: var(--cell-width);
+  height: var(--cell-height);
+  background: var(--cell-background);
+  border: var(--cell-border) var(--cell-border-style) var(--cell-border-color);
+  font-size: 3.3em;
+  text-align: center;
+  line-height: 0.9em;
+  color: var(--cell-color-black);
+}
+.board > div:hover {
+  background: var(--cell-background-hover);
+  /*
+  border: var(--cell-border-hover) var(--cell-border-style-hover) var(--cell-border-color-hover);
+  */
+}
+.board > div[data-status="flag"] {
+  font-size: 3.5em;
+  line-height: 0.9em;
+}
+.board > div[data-status="flag"]:before {
+  content: "\2691";
+}
+.board > div[data-status="flagoff"] {
+  font-size: 3.5em;
+  line-height: 0.9em;
+}
+.board > div[data-status="flagoff"]:before {
+  content: "\2690"
+}
+.board > div[data-status="mine"] {
+  font-size: 4em;
+  line-height: 0.6em;
+}
+.board > div[data-status="mine"]:before {
+  content: "\2699";
+}
+.board > div[data-status="empty"] {
+  background-image: radial-gradient(var(--cell-color-lightlight-gray), var(--cell-color-light-gray));
+}
+
+.board > div[data-color="blue"] {
+  color: var(--cell-color-blue);
+}
+.board > div[data-color="green"] {
+  color: var(--cell-color-green);
+}
+.board > div[data-color="red"] {
+  color: var(--cell-color-red);
+}
+.board > div[data-color="orange"] {
+  color: var(--cell-color-orange);
+}
+.board > div[data-color="black"] {
+  color: var(--cell-color-black);
+}
