@@ -1,16 +1,16 @@
 @import url("https://fonts.googleapis.com/css?family=Ubuntu:700,italic,regular,700italic");
 
 :root {
-  --cell-color-blue: hsl(204, 86%, 53%);
-  --cell-color-green: hsl(141, 71%, 53%);
-  --cell-color-red: hsl(348, 100%, 61%);
-  --cell-color-orange: hsl(37, 90%, 51%);
-  --cell-color-white: hsl(0, 0%, 96%);
-  --cell-color-black: hsl(0, 0%, 4%);
-  --cell-color-lightlight-gray: hsl(0, 0%, 89%);
-  --cell-color-light-gray: hsl(0, 2%, 78%);
-  --cell-color-lightdark-gray: hsl(0, 0%, 50%);
-  --cell-color-dark-gray: hsl(0, 0%, 40%);
+  --color-blue: hsl(204, 86%, 53%);
+  --color-green: hsl(141, 71%, 53%);
+  --color-red: hsl(348, 100%, 61%);
+  --color-orange: hsl(37, 90%, 51%);
+  --color-white: hsl(0, 0%, 96%);
+  --color-black: hsl(0, 0%, 4%);
+  --color-lightlight-gray: hsl(0, 0%, 89%);
+  --color-light-gray: hsl(0, 2%, 78%);
+  --color-lightdark-gray: hsl(0, 0%, 50%);
+  --color-dark-gray: hsl(0, 0%, 40%);
 
   --background-color: rgb(94, 85, 92);
   --title-color: rgb(177, 178, 193);
@@ -22,31 +22,74 @@
   --button-hover-background-color: rgb(127, 127, 127);
   --button-active-background-color: rgb(127, 127, 127);
 
+  --icon-flag: "\2691";
+  --icon-flagoff: "\2690";
+  /*
+  --icon-mine: "\2699";
+   */
+  --icon-mine: "\1F4A3";
+  /*
+  https://www.compart.com/en/unicode/U+003F
+   */
+  --icon-question: "\003f";
+  --icon-question-margin: 8px;
+  /*
+  https://www.compart.com/en/unicode/U+FE16
+  --icon-question: "\fe16";
+  --icon-question-margin: 0px;
+   */
+  /*
+  https://www.compart.com/en/unicode/U+FE56
+  --icon-question: "\fe56";
+  --icon-question-margin: -1px;
+   */
+  /*
+  https://www.compart.com/en/unicode/U+FF1F
+  --icon-question: "\ff1f";
+  --icon-question-margin: 7px;
+   */
+
+  --board-size: 10;
+  /*
   --cell-width: 50px;
   --cell-height: 50px;
-  --cell-background: radial-gradient(var(--cell-color-white), var(--cell-color-light-gray));
-  --cell-background-open: radial-gradient(var(--cell-color-white), var(--cell-color-light-gray));
-  --cell-background-hover: radial-gradient(var(--cell-color-white), var(--cell-color-light-gray), var(--cell-color-red));
+   */
+  --cell-width: 5vh;
+  --cell-height: 5vh;
+  --cell-background: radial-gradient(var(--color-white), var(--color-light-gray));
+  --cell-background-empty: radial-gradient(var(--color-lightlight-gray), var(--color-lightdark-gray));
+  --cell-background-open: radial-gradient(var(--color-white), var(--color-light-gray));
+  --cell-background-hover: radial-gradient(var(--color-white), var(--color-light-gray), var(--color-dark-gray));
   --cell-border: 1px;
   --cell-border-hover: 1px;
   --cell-border-style: solid;
   --cell-border-style-hover: solid;
-  --cell-border-color: var(--cell-color-black);
-  --cell-border-color-hover: var(--cell-color-red);
+  --cell-border-color: var(--color-black);
+  --cell-border-color-hover: var(--color-red);
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   background: var(--background-color);
+  font-family: 'Ubuntu', sans-serif;
 }
 
 main {
   font-family: 'Ubuntu', sans-serif;
-  max-width: 610px;
-  margin: auto;
+  max-width: 100vh;
 }
 
 h1 {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--title-color);
   font-weight: 700;
 }

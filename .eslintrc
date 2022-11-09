@@ -8,6 +8,6 @@
         "@typescript-eslint/ban-ts-comment": 1,
         "no-console": 1,
         "quotes": [2, "single"],
-        "semi": "warn"
+        "semi": "off"
     }
 }
