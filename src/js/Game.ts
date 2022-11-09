@@ -1,54 +1,127 @@
 import Cell from './Cell'
-import {getRandomInteger} from './utils'
+import {getRandomInteger, keyDown, keyUp} from './utils'
 
-export class Game {
-  static FLAG: string = "&#9873"
-  static FLAGOFF: string = "&#9872"
-  static MINE: string = "&#9881"
-  static gameOver: boolean = false
-  static mines: number = 10
-  static minesRemaining: number = Game.mines
-  static board: Array<Cell> = []
-  timer: number = 0
-  timeout: number = 0
+class Game {
+  private static instance: Game;
+  gameOver = false
+  private board: Array<Cell> = []
+  private timer = 0
+  private timeout = 0
 
-  static get cellPrefix() {
-    return 'c'
+  /**
+   * Get class instance
+   */
+  static get getInstance() {
+    if (!Game.instance) {
+      console.error('Invalid instance')
+      console.trace()
+      throw 'Invalid instance'
+    }
+    return Game.instance
   }
 
-  static get boardSize() {
+  /**
+   * Get board size
+   */
+  get boardSize(): number {
+    const size = localStorage.getItem('board-size')
+    if (size) {
+      return Number(size)
+    }
+    const cssSize = getComputedStyle(document.documentElement).getPropertyValue('--board-size');
+    if (cssSize) {
+      return Number(cssSize)
+    }
     return 10
   }
 
+  /**
+   * Set board size
+   * @param {Number} size
+   */
+  set boardSize(size: number) {
+    const sizeString = String(size)
+    localStorage.setItem('board-size', sizeString)
+    document.documentElement.style.setProperty('--board-size', sizeString);
+    this.buildBoard()
+  }
+
+  /**
+   * Get no. of mines
+   */
+  get mines(): number {
+    const mines = localStorage.getItem('mines')
+    if (mines) {
+      return Number(mines)
+    }
+    return 10
+  }
+
+  /**
+   * Set no. of mines
+   */
+  set mines(mines: number) {
+    localStorage.setItem('mines', String(mines))
+    this.newGame()
+  }
+
+  /**
+   * Get remaining mines
+   */
+  get minesRemaining(): number {
+    let flagged = 0
+    this.board.forEach((cell) => {
+      if (cell.flagged) {
+        flagged++
+      }
+    })
+
+    return (this.mines - flagged)
+  }
+
+  /**
+   * Get current board
+   */
+  static get board(): Array<Cell> {
+    return Game.getInstance.board
+  }
+
+  /**
+   * Constructor
+   */
+  constructor() {
+    Game.instance = this
+  }
+
+  /**
+   * You clicked on a mine, you lose
+   */
   loss() {
-    Game.gameOver = true
-    let messageBox = document.getElementById('messageBox')
-    if (messageBox === null) {
+    this.gameOver = true
+    const messageBox = document.getElementById('messageBox')
+    if (!messageBox) {
       return
     }
     messageBox.innerText = 'Game Over!'
     Object.assign(messageBox.style, {color: 'white', backgroundColor: 'red'})
 
-    Game.board.forEach((cell: Cell) => {
-      if (cell.mined && !cell.flagged) {
-        cell.element.dataset.status = 'mine'
-        cell.element.dataset.color = 'black'
-      } else if (!cell.mined && cell.flagged) {
-        cell.element.dataset.status = 'flagoff'
-        cell.element.dataset.color = 'black'
-      }
+    this.board.forEach((cell: Cell) => {
+      cell.display()
     })
     clearInterval(this.timeout)
   }
 
+  /**
+   * You avoided all mines, you win
+   */
   win() {
-    Game.gameOver = true
-    let messageBox = document.getElementById('messageBox')
-    if (messageBox === null) {
+    this.gameOver = true
+    const messageBox = document.getElementById('messageBox')
+    if (!messageBox) {
       return
     }
     messageBox.innerText = 'You Win!'
-    let cssList = {
+    const cssList = {
       color: 'white',
       backgroundColor: 'green',
     }
@@ -56,8 +129,21 @@ export class Game {
     clearInterval(this.timeout)
   }
 
+  buildBoard() {
+    this.board = [...Array(Math.pow(this.boardSize, 2)).keys()].map((i) => {
+      const dec = String(i / this.boardSize).split('.')
+      if (!dec[1]) {
+        dec[1] = '0'
+      }
+      return new Cell(Number(dec[0]), Number(dec[1]))
+    })
+
+  }
+  /**
+   * Create a new game
+   */
   newGame(): void {
-    let time = document.getElementById('time'),
+    const time = document.getElementById('time'),
       messageBox = document.getElementById('messageBox'),
       minesRemaining = document.getElementById('mines-remaining')
 
@@ -72,9 +158,14 @@ export class Game {
       backgroundColor: ''
     })
 
-    Game.minesRemaining = Game.mines
-    minesRemaining.innerText = Number(Game.minesRemaining).toString()
-    Game.gameOver = false
+    minesRemaining.innerText = this.minesRemaining.toString()
+    this.gameOver = false
+
+    document.removeEventListener('keydown', keyDown)
+    document.removeEventListener('keyup', keyUp)
+
+    document.addEventListener('keydown', keyDown)
+    document.addEventListener('keyup', keyUp)
 
     this.setupBoard()
     this.timer = 0
@@ -89,70 +180,69 @@ export class Game {
       if (this.timer >= 999) {
         this.timer = 999
       }
-      time.innerText = Number(this.timer).toString()
+      time.innerText = this.timer.toString()
     }, 1000)
   }
 
+  /**
+   * Setup board for playing a game
+   */
   setupBoard() {
-    let cell
-
-    for (let row = 0; row < Game.boardSize; row++) {
-      for (let column = 0; column < Game.boardSize; column++) {
-        cell = new Cell(this, row, column, false, false, false, 0)
-        cell.unhook()
-        cell.hook()
-        Game.board.push(cell)
-      }
-    }
+    this.board.forEach((cell) => {
+      cell.reset()
+    })
     this.randomlyAssignMines()
     this.calculateNeighborMineCounts()
   }
 
+  /**
+   * Calculate cells around current cell for mines
+   */
   calculateNeighborMineCounts () {
-    let neighborMineCount = 0,
-      cellId: string,
-      obj
-
-    for( let row = 0; row < Game.boardSize; row++ ) {
-      for( let column = 0; column < Game.boardSize; column++ ) {
-        cellId = Game.cellPrefix + row + "" + column
-        obj = Game.board.find((el) => el.id === cellId)
-        if( obj && !obj.isMined ) {
-          neighborMineCount = 0
-          obj.getNeighbors().forEach( (neighbor: string) => {
-            const neighborCell = Game.board.find((el) => el.id === neighbor)
-            if (neighborCell) {
-              neighborMineCount += neighborCell.isMined ? 1 : 0
-            }
-          })
-          obj.neighborMineCount = neighborMineCount
-        }
+    let neighborMineCount = 0
+    this.board.forEach((cell) => {
+      if (!cell.armed) {
+        neighborMineCount = 0
+        cell.getNeighbors(true).forEach((neighbor) => {
+          if (!neighbor) {
+            return
+          }
+          neighborMineCount += neighbor.armed ? 1 : 0
+        })
+        cell.neighborMineCount = neighborMineCount
       }
-    }
+    })
   }
 
+  /**
+   * Assign mines to cells
+   */
   randomlyAssignMines () {
-    let mineCoordinates: Array<string> = [],
-      randomRowCoordinate,
-      randomColumnCoordinate,
+    const mineCoordinates: Array<string> = [],
+      mines = this.mines
+
+    let randomRowCoordinate: number,
+      randomColumnCoordinate: number,
       cellId: string,
-      obj
-    for (let i = 0; i < Game.mines; i++) {
-      randomRowCoordinate = getRandomInteger( 0, Game.boardSize )
-      randomColumnCoordinate = getRandomInteger( 0, Game.boardSize )
-      cellId = Game.cellPrefix + randomRowCoordinate + "" + randomColumnCoordinate
+      obj: Cell | undefined
+
+    console.log(`Has ${mines}`)
+    for (let i = 0; i < mines; i++) {
+      randomRowCoordinate = getRandomInteger( 0, this.boardSize )
+      randomColumnCoordinate = getRandomInteger( 0, this.boardSize )
+      cellId = 'R' + randomRowCoordinate + 'C' + randomColumnCoordinate
       while (mineCoordinates.includes(cellId)) {
-        randomRowCoordinate = getRandomInteger( 0, Game.boardSize )
-        randomColumnCoordinate = getRandomInteger( 0, Game.boardSize )
-        cellId = Game.cellPrefix + randomRowCoordinate + "" + randomColumnCoordinate
+        randomRowCoordinate = getRandomInteger( 0, this.boardSize )
+        randomColumnCoordinate = getRandomInteger( 0, this.boardSize )
+        cellId = 'R' + randomRowCoordinate + 'C' + randomColumnCoordinate
       }
 
-      obj = Game.board.find((el) => el.id === cellId)
+      obj = Game.board.find((el) => el.row === randomRowCoordinate && el.column === randomColumnCoordinate)
       if (!obj) {
         i--
       } else {
-        mineCoordinates.push(obj.id)
-        obj.mined = true
+        mineCoordinates.push(cellId)
+        obj.armed = true
       }
     }
   }

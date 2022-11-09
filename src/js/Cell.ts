@@ -1,64 +1,93 @@
 import Game from './Game'
-import {cellClickEvent, handleRightClick} from "./utils";
+import {cellClickEvent, handleRightClick} from './utils'
 
-export class Cell {
-  game: Game
+class Cell {
   row: number
   column: number
   opened: boolean
   flagged: boolean
-  mined: boolean
+  armed: boolean
   neighborMineCount: number
-  element: HTMLElement
+  private htmlElement: HTMLElement | undefined
 
-  constructor(game: Game, row: number, column: number, opened: boolean, flagged: boolean, mined: boolean, neighborMineCount: number) {
-    this.game = game
+  constructor(row: number, column: number, opened = false, flagged = false, armed = false, neighborMineCount = 0) {
     this.row = row
     this.column = column
     this.opened = opened
     this.flagged = flagged
-    this.mined = mined
+    this.armed = armed
     this.neighborMineCount = neighborMineCount
-    const element = document.getElementById(this.id)
-    if (!element) {
-      throw "Invalid element"
-    }
-    this.element = element
   }
 
+  reset() {
+    this.unhook()
+    this.opened = false
+    this.flagged = false
+    this.armed = false
+    this.neighborMineCount = 0
+    if (this.element instanceof HTMLElement) {
+      delete this.element.dataset.status
+      delete this.element.dataset.color
+      this.element.innerText = ''
+    }
+    this.hook()
+  }
+
+  /**
+   * Get corresponding element
+   */
+  get element(): HTMLElement {
+    if (!this.htmlElement) {
+      console.error('Invalid instance')
+      console.trace()
+      throw 'Invalid cell element'
+    }
+    return this.htmlElement
+  }
+
+  /**
+   * Set corresponding element
+   */
+  set element(el: HTMLElement) {
+    this.htmlElement = el
+  }
+
+  /**
+   * Get cell ID
+   */
   get id(): string {
-    return Game.cellPrefix + this.row + "" + this.column;
+    return 'R' + this.row + 'C' + this.column;
   }
 
-  get isMined(): boolean {
-    return this.mined
-  }
+  /**
+   * Get info on surrounding cells
+   * @param {Boolean} includeCorners
+   */
+  getNeighbors(includeCorners = false): Array<Cell | undefined> {
+    const neighbors = []
 
-  getNeighbors(): string[] {
-    let row = this.row,
-      column = this.column,
-      neighbors = [],
-      i, elem
+    neighbors.push([this.row - 1, this.column])       // Top
+    neighbors.push([this.row, this.column - 1])       // Left
+    neighbors.push([this.row, this.column + 1])       // Right
+    neighbors.push([this.row + 1, this.column])       // Bottom
 
-    neighbors.push(Game.cellPrefix + (row - 1) + "" + (column - 1))
-    neighbors.push(Game.cellPrefix + (row - 1) + "" + column)
-    neighbors.push(Game.cellPrefix + (row - 1) + "" + (column + 1))
-    neighbors.push(Game.cellPrefix + row + "" + (column - 1))
-    neighbors.push(Game.cellPrefix + row + "" + (column + 1))
-    neighbors.push(Game.cellPrefix + (row + 1) + "" + (column - 1))
-    neighbors.push(Game.cellPrefix + (row + 1) + "" + column)
-    neighbors.push(Game.cellPrefix + (row + 1) + "" + (column + 1))
-
-    for (i = 0; i < neighbors.length; i++) {
-      elem = document.getElementById(neighbors[i]);
-      if (elem == null) {
-        neighbors.splice(i, 1)
-        i--
-      }
+    if (includeCorners) {
+      neighbors.push([this.row - 1, this.column - 1]) // Top Left
+      neighbors.push([this.row - 1, this.column + 1]) // Top Right
+      neighbors.push([this.row + 1, this.column - 1]) // Bottom Left
+      neighbors.push([this.row + 1, this.column + 1]) // Bottom Right
     }
-    return neighbors
+    return neighbors.map((value) => {
+      if (value[0] < 0 || value[1] < 0 || value[0] > Game.getInstance.boardSize || value[1] > Game.getInstance.boardSize) {
+        return
+      }
+      return Game.board.find((el) => el.row === value[0] && el.column === value[1])
+    }).filter((cell) => cell instanceof Cell)
   }
 
+  /**
+   * Get number coloring
+   */
   getNumberColor(): string {
     switch (this.neighborMineCount) {
       case 0:
@@ -76,18 +105,30 @@ export class Cell {
     }
   }
 
+  /**
+   * Remove event
+   */
   unhook() {
-    this.element.removeEventListener('click', (e) => cellClickEvent(this.game, e))
+    this.element.setAttribute('style', '')
+    this.element.removeEventListener('click', (e) => cellClickEvent(e))
+    this.element.removeEventListener('contextmenu', (e) => handleRightClick(e))
   }
 
+  /**
+   * Hook event
+   */
   hook() {
     this.element.removeAttribute('style')
-    this.element.addEventListener('click', (e) => cellClickEvent(this.game, e))
+    this.element.addEventListener('click', (e) => cellClickEvent(e))
     this.element.addEventListener('contextmenu', (e) => handleRightClick(e))
   }
 
+  /**
+   * Open cell when clicked
+   */
   open() {
     this.opened = true
+
     if (this.neighborMineCount > 0) {
       this.element.innerText = String(this.neighborMineCount)
       this.element.dataset.status = ''
@@ -99,22 +140,50 @@ export class Cell {
     }
   }
 
+  /**
+   * Display cell when game is over
+   */
+  display() {
+    if (this.armed && !this.flagged) {
+      this.element.dataset.status = 'mine'
+      this.element.dataset.color = 'black'
+    } else if (!this.armed && this.flagged) {
+      this.element.dataset.status = 'flagoff'
+      this.element.dataset.color = 'black'
+    }
+  }
+
+  /**
+   * This is cell that triggered the game loss
+   */
+  exploded() {
+    this.element.dataset.status = 'exploded'
+    //this.element.dataset.color = 'red'
+  }
+
+  /**
+   * Set flag on cell
+   */
   setFlag() {
     this.flagged = true
-    //this.element.innerHTML = Game.FLAG
+
     this.element.dataset.status = 'flag'
     this.element.dataset.color = 'red'
   }
 
+  /**
+   * Remove flag on cell
+   */
   unsetFlag() {
     this.flagged = false
+
     //if (!this.opened && this.neighborMineCount > 0) {
     //  this.element.innerHTML = String(this.neighborMineCount)
     //  this.element.dataset.status = this.getNumberColor()
     //} else {
-      this.element.innerHTML = ''
-      this.element.dataset.status = ''
-      this.element.dataset.color = ''
+    this.element.innerHTML = ''
+    this.element.dataset.status = ''
+    this.element.dataset.color = ''
     //}
   }
 }

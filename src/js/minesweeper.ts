@@ -1,13 +1,13 @@
 import Game from './Game'
-import Elements from './Elements'
-import {keyDown, keyUp} from './utils'
+import Layout from './Layout'
 
 const Minesweeper = () => {
   const gameObj = new Game()
-  Elements.buildInterface(gameObj)
+  gameObj.buildBoard()
 
-  document.addEventListener('keydown', keyDown);
-  document.addEventListener('keyup', keyUp);
+  const LayoutObj = new Layout()
+  LayoutObj.build()
+
   gameObj.newGame()
 }
 export {Minesweeper};

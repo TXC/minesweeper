@@ -1,5 +1,7 @@
 import Game from './Game'
 import Cell from './Cell'
+// @ts-ignore
+import css from '../css/elements.module.css'
 
 let ctrlIsPressed = false
 
@@ -7,147 +9,128 @@ const getRandomInteger = (min: number, max: number ): number => {
   return Math.floor( Math.random() * ( max - min + 1) ) + min
 }
 
-const handleClick = (game: Game, cellId: string) => {
-  const cell = Game.board.find((el) => el.id === cellId)
-  if (cell && !cell.opened && !cell.flagged) {
-    if (cell.isMined) {
-      game.loss()
-      //cell.element.innerHTML = Game.MINE
-      cell.element.dataset.status = 'mine'
-      cell.element.dataset.color = 'red'
-      return
-    }
-    cell.open()
-    if (cell.neighborMineCount > 0) {
-      return
-    }
-
-    cell.getNeighbors().forEach((neighbor: string) => {
-      const neighborCell = Game.board.find((el) => el.id === neighbor)
-      if(neighborCell && !neighborCell.opened && !neighborCell.flagged) {
-        handleClick(game, neighbor)
-      }
-    })
+const handleClick = (cell: Cell) => {
+  if (cell.opened || cell.flagged) {
+    return
   }
+
+  if (cell.armed) {
+    Game.getInstance.loss()
+    cell.exploded()
+    return
+  }
+
+  cell.open()
+
+  if (cell.neighborMineCount > 0) {
+    return
+  }
+
+  cell.getNeighbors().forEach((neighbor) => {
+    if(neighbor && !neighbor.opened && !neighbor.flagged) {
+      handleClick(neighbor)
+    }
+  })
 }
 
-const handleCtrlClick = (game: Game, cellId: string) => {
-  const cell = Game.board.find((el) => el.id === cellId)
-  if( cell && cell.opened && cell.neighborMineCount > 0 ) {
-    let neighbors = cell.getNeighbors(),
-      flagCount = 0,
-      flaggedCells: Cell[] = [],
-      lost = false
+const handleCtrlClick = (cell: Cell) => {
+  if (!cell.opened || !cell.neighborMineCount) {
+    return
+  }
+  const neighbors = cell.getNeighbors(),
+    flaggedCells: Cell[] = []
+  let flagCount = 0,
+    lost = false
 
-    neighbors.forEach((neighbor: string) => {
-      const neighborCell = Game.board.find((el) => el.id === neighbor)
-      if(neighborCell) {
-        if (neighborCell.flagged) {
-          flaggedCells.push(neighborCell)
-        }
-        flagCount += neighborCell.flagged ? 1 : 0
+  neighbors.forEach((neighbor) => {
+    if(neighbor) {
+      if (neighbor.flagged) {
+        flaggedCells.push(neighbor)
+      }
+      flagCount += neighbor.flagged ? 1 : 0
+    }
+  })
+
+  if(flagCount === cell.neighborMineCount) {
+    flaggedCells.some((flaggedCell: Cell) => {
+      if (flaggedCell.flagged && !flaggedCell.armed) {
+        Game.getInstance.loss()
+        lost = true
+        return true
       }
     })
-
-    if(flagCount === cell.neighborMineCount) {
-      flaggedCells.some((flaggedCell: Cell) => {
-        if (flaggedCell.flagged && !flaggedCell.mined) {
-          game.loss()
-          lost = true
-          return true
-        }
-      })
-
-      if(!lost) {
-        neighbors.forEach((neighbor: string) => {
-          const neighborCell = Game.board.find((el) => el.id === neighbor)
-          if(neighborCell && !neighborCell.flagged && !neighborCell.opened ) {
-            ctrlIsPressed = false
-            handleClick(game, neighborCell.id)
-          }
-        })
-      }
+    if (lost) {
+      return
     }
+    neighbors.forEach((neighbor) => {
+      if(neighbor && !neighbor.flagged && !neighbor.opened ) {
+        ctrlIsPressed = false
+        handleClick(neighbor)
+      }
+    })
   }
 }
 
 const handleRightClick = (e: Event) => {
-  if( Game.gameOver ) {
+  e.preventDefault()
+  if (Game.getInstance.gameOver) {
     return
   }
-  e.preventDefault()
-  // @ts-ignore
-  const cellId = e.currentTarget?.getAttribute?.('id')
-  const cell = Game.board.find((el) => el.id === cellId)
+  const cell = Game.board.find((el) => el.element === e.currentTarget)
   if (!cell || cell.opened) {
     return
   }
 
-  if (!cell.flagged && Game.minesRemaining > 0) {
+  if (!cell.flagged && Game.getInstance.minesRemaining > 0) {
     cell.setFlag()
-    Game.minesRemaining--
   } else if (cell.flagged) {
     cell.unsetFlag()
-    Game.minesRemaining++
   }
-
   const el = document.getElementById('mines-remaining')
   if (el === null) {
     return
   }
-  el.innerText = String(Game.minesRemaining)
+  el.innerText = Game.getInstance.minesRemaining.toString()
 }
 
-const cellClickEvent = (game: Game, e: Event) => {
-  if(Game.gameOver) {
+const cellClickEvent = (e: Event) => {
+  e.preventDefault()
+  if(Game.getInstance.gameOver) {
     return
   }
 
-  // @ts-ignore
-  if (e.currentTarget && typeof e.currentTarget.getAttribute === 'function') {
-    // @ts-ignore
-    const cellId = e.currentTarget.getAttribute('id')
-    if(ctrlIsPressed) {
-      handleCtrlClick(game, cellId)
-    } else {
-      handleClick(game, cellId)
-    }
+  const cell = Game.board.find((el) => el.element === e.currentTarget)
+  if (!cell) {
+    return
+  }
+  if(ctrlIsPressed) {
+    handleCtrlClick(cell)
+  } else {
+    cell.element.dataset.status='empty'
+    handleClick(cell)
   }
 
   let isVictory = true
-  Game.board.some((cell: Cell) => {
-    if( !cell.isMined && !cell.opened ) {
+  Game.board.some((cell) => {
+    if (!cell.opened && !cell.armed) {
       isVictory = false
       return true
     }
   })
 
-  if( isVictory ) {
-    game.win()
+  if (isVictory) {
+    Game.getInstance.win()
   }
 }
 
-const newGame = () => {
-  const btn = document.getElementById('new-game-button')
-  if (!btn) {
+const toggle = (element: HTMLElement | null) => {
+  if (!element) {
     return
   }
-  btn.addEventListener('click', () => (new Game).newGame())
-}
-
-const question = () => {
-  let el,
-    div = document.getElementById('instructions'),
-    style = div?.style
-
-  if (div === null || style === undefined) {
-    return
-  }
-  el = window.getComputedStyle(div)
-  if(el.display === 'block') {
-    style.display = ''
+  if(element.classList.contains(css.hidden)) {
+    element.classList.remove(css.hidden)
   } else {
-    style.display = 'block'
+    element.classList.add(css.hidden)
   }
 }
 
@@ -163,14 +146,26 @@ const keyUp = (event: KeyboardEvent) => {
   }
 }
 
+const range = (number: number): number[] => {
+  return [...Array(number).keys()]
+}
+
+const randomString = (letters: number): string => {
+  return [...Array(letters).keys()].map(() => {
+      const r = Math.random() * 16 | 0
+      return r.toString(16)
+    }).join('')
+}
+
 export {
   getRandomInteger,
   handleClick,
   handleCtrlClick,
   handleRightClick,
   cellClickEvent,
-  newGame,
-  question,
+  toggle,
   keyDown,
-  keyUp
+  keyUp,
+  range,
+  randomString,
 }
